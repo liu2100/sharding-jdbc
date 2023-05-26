@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <!-- 格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符 -->
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+<!--    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">-->
+<!--        <file>journal.log</file>-->
+<!--        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">-->
+<!--            <FileNamePattern>journal.%d{yyyy-MM-dd-HH}.log</FileNamePattern>-->
+<!--            <maxHistory>30</maxHistory>-->
+<!--        </rollingPolicy>-->
+<!--        <encoder>-->
+<!--            <Pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{35} - %msg %n</Pattern>-->
+<!--        </encoder>-->
+<!--    </appender>-->
+
+    <appender name="SYSLOG" class="ch.qos.logback.classic.net.SyslogAppender">
+        <syslogHost>127.0.0.1</syslogHost>
+        <facility>local4</facility>
+        <port>514</port>
+        <!-- <suffixPattern>[%thread] %logger %msg</suffixPattern> -->
+        <suffixPattern> %date{HH:mm:ss.SSS} [%thread] %-5level %logger{100} - %m %msg %ex{short} %nopex%n</suffixPattern>
+        <throwableExcluded>true</throwableExcluded>
+    </appender>
+    <logger name="org.springframework" level="INFO" />
+    <root level="INFO">
+        <appender-ref ref="STDOUT" />
+        <appender-ref ref="SYSLOG" />
+    </root>
+
+</configuration>

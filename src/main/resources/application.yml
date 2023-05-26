@@ -1,0 +1,64 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: db-service
+  shardingsphere:
+    props:
+      sql:
+        show: true
+    datasource:
+      names: ds,ds0,ds1
+      ds:
+        type: com.zaxxer.hikari.HikariDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        jdbc-url: jdbc:mysql://127.0.0.1:3306/test?allowPublicKeyRetrieval=true&useSSL=false&autoReconnect=true&characterEncoding=utf8
+        username: root
+        password: 123456
+      ds0:
+        type: com.zaxxer.hikari.HikariDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        jdbc-url: jdbc:mysql://127.0.0.1:3306/sharding_db_0?allowPublicKeyRetrieval=true&useSSL=false&autoReconnect=true&characterEncoding=utf8
+        username: root
+        password: 123456
+      ds1:
+        type: com.zaxxer.hikari.HikariDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        jdbc-url: jdbc:mysql://127.0.0.1:3306/sharding_db_1?allowPublicKeyRetrieval=true&useSSL=false&autoReconnect=true&characterEncoding=utf8
+        username: root
+        password: 123456
+    sharding:
+      default-datasource-name: ds
+      tables:
+        product:
+          #配置节点分布情况，指定数据表范围
+          actual-data-nodes: ds.product_${0..1} #指定数据表范围
+          table-strategy: # 分表策略
+            inline:
+              sharding-column: product_id #分片字段
+              algorithm-expression: product_$->{product_id % 2} #如果确定不会再新增表，直接取余获取表名
+        order_main:
+          #配置节点分布情况，指定数据库范围
+          actual-data-nodes: ds${0..1}.order_main
+          database-strategy: # 分库策略
+            standard:
+              sharding-column: member_id
+              precise-algorithm-class-name: org.example.db.algorithm.DbShardingAlgorithm
+        member_login_log:
+          #配置节点分布情况，指定数据库范围，指定可以容纳user_202201到user_203212的表，根据时间情况定
+          actual-data-nodes: ds${0..1}.member_login_log_$->{2023..2033}$->{(1..12).collect{t -> t.toString().padLeft(2,'0')}}
+          database-strategy: # 分库策略
+            standard:
+              sharding-column: member_id
+              precise-algorithm-class-name: org.example.db.algorithm.DbShardingAlgorithm
+          table-strategy: # 分表策略
+            standard:
+              sharding-column: created_at #分片字段
+              precise-algorithm-class-name: org.example.db.algorithm.DatePreciseShardingAlgorithm
+  jpa:
+    show-sql: true
+    hibernate:
+      naming:
+        physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
+        implicit-strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
